@@ -1,0 +1,246 @@
+{
+  "name": "Stfns_job_automation_27122025",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        432
+      ],
+      "id": "b2f43a71-6ba2-414d-9ad3-181c9ac74c64",
+      "name": "Telegram Trigger",
+      "webhookId": "0ade3141-3a36-4093-a1fc-27dd277b18df",
+      "credentials": {
+        "telegramApi": {
+          "id": "mWvar8tOvakjiaJO",
+          "name": "Stfns_job_automation_27122025"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Job search keyword: ' + $json.message.text + '\\n\\nToday\\'s date: ' + $json.currentDate + '\\nSearch for jobs posted after: ' + $json.tenDaysAgo }}",
+        "options": {
+          "systemMessage": "You are a job search assistant that helps users find recent job listings.\n\nYour task is to:\n1. Receive a job search keyword from the user\n2. Use web search to find 10-12 recent job listings matching the keyword\n3. Newest <10 days worldwide\n4. Create a simple HTML table with the jobs including: job title, company, location, a brief description, posted-date and URL\n5. Use the Gmail Tool to send the job listings table via email to sardar.stephen@gmail.com with subject \"Job Search Results\"\n6. After successfully sending the email, use the Telegram Tool to send a confirmation message\n\nIMPORTANT:\n- Keep the search focused and efficient - aim for 10-12 quality results. \n- Search against public job boards globally & India (eFinancialCareers, Indeed, TheMomProject, company careers pages, Glassdoor, Google Jobs)\n- must include keyword in the job description: 'Bloomberg/ Refinitiv' (not necessaryly same company name)\n- Format as a clean HTML table\n- For the Telegram confirmation, use the chat ID from the original message and send a brief success message\n- Expand to more boards (specialist Market-Data firms, vendor pages  e.g., Refinitiv/LSEG, S&P, ICE, IHS Markit, FactSet, Numerix, Tradeweb) Check for duplicates and filterout. \n- Example: Market Data Analyst / Market Data roles — Point72 Market Data and similar specialist financial Services firms (examples listed in India pages and city-specific pages).\n- Prefered location: excluding US"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1296,
+        432
+      ],
+      "id": "2ce5f025-49dc-456b-982e-4f4f625ed039",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1296,
+        656
+      ],
+      "id": "10466952-51b0-4414-957e-9291c0afbb0f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "medium"
+          }
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        656
+      ],
+      "id": "5e4598b0-e893-4a10-a0c9-1f1537da4ee0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "csb2pOS0Uas4rVVF",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sardar.stephen@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        656
+      ],
+      "id": "b852a1ee-b93f-4df6-af86-dff9029c4f7f",
+      "name": "Send a message in Gmail",
+      "webhookId": "15f0b9be-6435-41f3-b7a7-5edeec38fb7d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "79tqcaU3vKovDHmX",
+          "name": "sardar.stephen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "=7060971426",
+        "text": "={{ $fromAI('confirmationMessage', 'Success confirmation message', 'string') }}",
+        "additionalFields": {}
+      },
+      "id": "256064a5-bc7e-45ab-907a-a983881672cf",
+      "name": "Send Telegram Confirmation",
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        1552,
+        656
+      ],
+      "webhookId": "c5c8a867-9d0c-414e-92db-61374856fa10",
+      "credentials": {
+        "telegramApi": {
+          "id": "mWvar8tOvakjiaJO",
+          "name": "Stfns_job_automation_27122025"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "currentDate",
+              "value": "={{ $now.toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "tenDaysAgo",
+              "value": "={{ $now.minus({ days: 10 }).toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "06748b52-df36-4c60-8615-491c8eeb7ee0",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        432
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Confirmation": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d80cb91b-7b23-4ae7-b99e-455a9864a6bd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "25e6c25713aed5b6430fb4eacebecd6e261482c053b439853b0cc282b9a6f61b"
+  },
+  "id": "KT2lxLfd72DQKMQ4",
+  "tags": []
+}
