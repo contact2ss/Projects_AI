@@ -1,0 +1,403 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1616,
+        816
+      ],
+      "id": "b1c2004a-7be8-4a26-8785-8668ad8bd8e8",
+      "name": "Telegram Trigger",
+      "webhookId": "372929c2-430e-455b-99d4-1e844e583cd1",
+      "credentials": {
+        "telegramApi": {
+          "id": "232xhGUtzr6vWWWy",
+          "name": "Test_Stfn_21122025_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a helpful Telegram bot assistant that helps with Google Sheets data analysis and email management.\n\nYour capabilities:\n1. **Email Sending**: Use First Name from Google Sheet data to personalize greetings. Always sign emails with \"Best regards,\\nStephen Sardar\"\n2. **Data Analysis**: Web search company names based on email domains and update Google Sheets\n   - Extract domain from email addresses (e.g., \"user@company.com\" → \"company.com\")\n   - Web search to find the company name for that domain\n   - Update the \"company\" column in the sheet with the found company name\n   - Process each row individually\n\nWhen updating sheets:\n- Read the current data first using Read Dubai Recruitment Sheet tool\n- For each email address, extract the domain and web search for the company name\n- Use Data Analysis tool to update rows with the company names you found\n\nRespond to user messages in a friendly and helpful manner."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1152,
+        816
+      ],
+      "id": "fa26bd12-923e-407e-90b3-b65e6c338567",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=telegram_{{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1264,
+        1040
+      ],
+      "id": "c28a17ac-75c2-41fe-a3ac-f43c2ad26d4d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "medium"
+          }
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1392,
+        1040
+      ],
+      "id": "11356723-49d0-4713-97d9-65a6b4465a37",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "csb2pOS0Uas4rVVF",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -544,
+        816
+      ],
+      "id": "dbee8504-22b1-4830-a2cd-ed96f4bc8b01",
+      "name": "Send a text message",
+      "webhookId": "e5f740f0-b596-411e-8e50-6894af81acb9",
+      "credentials": {
+        "telegramApi": {
+          "id": "232xhGUtzr6vWWWy",
+          "name": "Test_Stfn_21122025_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1PsFtlZJ8fS2IUm61g611Knr6M8B0XcxhYTvjl81VQ7I",
+          "mode": "list",
+          "cachedResultName": "Copy of Gmail/Sheets mail merge ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PsFtlZJ8fS2IUm61g611Knr6M8B0XcxhYTvjl81VQ7I/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PsFtlZJ8fS2IUm61g611Knr6M8B0XcxhYTvjl81VQ7I/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -1136,
+        1040
+      ],
+      "id": "b432bbaf-830e-43e3-bb6d-03d4d0fee5b2",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MAmDa3sEzQdf8bnY",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Append_n8n_Attribution', ``, 'boolean') }}",
+          "senderName": "Stephen Sardar"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1008,
+        1040
+      ],
+      "id": "3d9cc892-c24d-4aa1-973a-912bf1c22ce2",
+      "name": "Send a message in Gmail",
+      "webhookId": "0affed59-2833-45f6-a352-0fb73f0de3bf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XcCoaaN74I4xlIgs",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1fxMVKCWkj7Nh2yyFo1O3LyQ8ZwsxNNURKp6xfmR0E1w",
+          "mode": "list",
+          "cachedResultName": "Dubai Recruitment agencies Email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fxMVKCWkj7Nh2yyFo1O3LyQ8ZwsxNNURKp6xfmR0E1w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Recipient",
+              "displayName": "Recipient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Sent",
+              "displayName": "Email Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "update_id",
+              "displayName": "update_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "toolCallId",
+              "displayName": "toolCallId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -880,
+        1040
+      ],
+      "id": "dc22aff1-024f-4e32-9344-029df9bb33d3",
+      "name": "Data Analysis",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MAmDa3sEzQdf8bnY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1fxMVKCWkj7Nh2yyFo1O3LyQ8ZwsxNNURKp6xfmR0E1w"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0"
+        },
+        "options": {}
+      },
+      "id": "9f41c005-1516-4d83-8349-0eba8331baca",
+      "name": "Read Dubai Recruitment Sheet",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -752,
+        1040
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NSkPuS8EP1WCnkox",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Analysis": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Dubai Recruitment Sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7bb66b8b-ccc5-4804-ae69-50f5f6465ebc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "25e6c25713aed5b6430fb4eacebecd6e261482c053b439853b0cc282b9a6f61b"
+  },
+  "id": "L7RfyJCISkhYHUIt",
+  "tags": []
+}
